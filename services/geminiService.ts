@@ -1,11 +1,16 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Car } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-
 export const getCarRecommendation = async (userPreference: string, inventory: Car[]) => {
   try {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      console.warn("API Key is missing. Check your Netlify environment variables.");
+      return "Our recommendation service is temporarily unavailable. Please browse our inventory manually.";
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    
     const carContext = inventory.map(c => 
       `${c.brand} ${c.model} (${c.year}), ${c.fuelType}, Price: ₹${c.price}L, Type: ${c.bodyType}, Mileage: ${c.mileage}km. Description: ${c.description}`
     ).join('\n');
@@ -38,6 +43,6 @@ export const getCarRecommendation = async (userPreference: string, inventory: Ca
     return response.text;
   } catch (error) {
     console.error("AI Assistant Error:", error);
-    return "Our advanced consultant is currently busy with another client. Please browse our inventory or call us directly!";
+    return "Our advanced consultant is currently busy. Please browse our inventory or call us directly!";
   }
 };
