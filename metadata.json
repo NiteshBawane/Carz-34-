@@ -1,0 +1,7 @@
+{
+  "name": "Carz-34 - Trusted Pre-Owned Cars in Chandrapur",
+  "description": "A modern, premium business website for Carz-34, the leading second-hand automobile dealer in Chandrapur, Maharashtra. Features inventory management, AI-powered car search, and direct contact options.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
