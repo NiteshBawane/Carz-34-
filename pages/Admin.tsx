@@ -2,13 +2,29 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCars } from '../context/CarContext';
-import { Plus, Edit, Trash2, LayoutDashboard, LogOut, Search, X, ShieldAlert, AlertTriangle, Check, RotateCcw } from 'lucide-react';
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  LayoutDashboard, 
+  LogOut, 
+  Search, 
+  X, 
+  ShieldAlert, 
+  AlertTriangle, 
+  Check, 
+  RotateCcw,
+  CloudCheck,
+  Globe,
+  WifiOff,
+  Loader2
+} from 'lucide-react';
 import CarForm from '../components/CarForm';
 import { Car } from '../types';
 
 const Admin: React.FC = () => {
   const { isAdmin, login, logout } = useAuth();
-  const { cars, addCar, updateCar, deleteCar } = useCars();
+  const { cars, loading, isCloudSync, addCar, updateCar, deleteCar } = useCars();
   const [password, setPassword] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editingCar, setEditingCar] = useState<Car | null>(null);
@@ -26,8 +42,8 @@ const Admin: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
-    deleteCar(id);
+  const handleDelete = async (id: string) => {
+    await deleteCar(id);
     setDeletingId(null);
   };
 
@@ -85,7 +101,20 @@ const Admin: React.FC = () => {
               <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Authorized</span>
               <h1 className="text-4xl font-black uppercase font-heading tracking-tight">Inventory <span className="text-red-600">Manager</span></h1>
             </div>
-            <p className="text-gray-500 font-medium">Currently controlling {cars.length} vehicles in Chandrapur outlet.</p>
+            <div className="flex items-center space-x-4">
+              <p className="text-gray-500 font-medium">Currently controlling {cars.length} vehicles.</p>
+              {isCloudSync ? (
+                <div className="flex items-center space-x-1.5 bg-green-50 text-green-600 px-3 py-1 rounded-full border border-green-100 animate-pulse">
+                  <Globe size={14} />
+                  <span className="text-[10px] font-black uppercase">Live Cloud Sync Active</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-1.5 bg-amber-50 text-amber-600 px-3 py-1 rounded-full border border-amber-100">
+                  <WifiOff size={14} />
+                  <span className="text-[10px] font-black uppercase">Local Device Storage Only</span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex gap-4">
             <button 
@@ -111,101 +140,109 @@ const Admin: React.FC = () => {
             <Search className="text-gray-400" size={20} />
             <input 
               type="text"
-              placeholder="Search by brand, model or fuel..."
+              placeholder="Search stock..."
               className="flex-grow font-bold outline-none bg-transparent text-gray-800"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
-                  <th className="px-6 py-5">Vehicle Details</th>
-                  <th className="px-6 py-5">Visibility</th>
-                  <th className="px-6 py-5">Valuation</th>
-                  <th className="px-6 py-5">MFG Year</th>
-                  <th className="px-6 py-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredCars.length > 0 ? filteredCars.map(car => (
-                  <tr key={car.id} className={`transition-all duration-300 ${deletingId === car.id ? 'bg-red-50' : 'hover:bg-gray-50/50'}`}>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-4">
-                        <img src={car.images[0]} className="w-14 h-14 rounded-xl object-cover shadow-sm" />
-                        <div>
-                          <div className="font-black uppercase text-sm text-gray-900">{car.brand} {car.model}</div>
-                          <div className="text-xs text-gray-500 font-bold uppercase tracking-tighter">{car.fuelType} • {car.transmission}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {deletingId === car.id ? (
-                        <div className="flex items-center text-red-600 font-black text-[10px] uppercase tracking-widest">
-                          <AlertTriangle size={14} className="mr-2" />
-                          Removing from stock...
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {car.featured && <span className="bg-red-50 text-red-600 text-[9px] font-black px-2 py-0.5 rounded uppercase border border-red-100">Featured</span>}
-                          {car.verified && <span className="bg-green-50 text-green-600 text-[9px] font-black px-2 py-0.5 rounded uppercase border border-green-100">Verified</span>}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-black text-gray-900">₹{car.price}L</td>
-                    <td className="px-6 py-4 text-gray-500 font-bold">{car.year}</td>
-                    <td className="px-6 py-4 text-right">
-                      {deletingId === car.id ? (
-                        <div className="flex justify-end space-x-2 animate-in slide-in-from-right-2 duration-200">
-                          <button 
-                            onClick={() => setDeletingId(null)}
-                            className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center hover:bg-gray-300 transition-colors"
-                          >
-                            <RotateCcw size={12} className="mr-1" />
-                            Cancel
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(car.id)}
-                            className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
-                          >
-                            <Check size={12} className="mr-1" />
-                            Confirm
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex justify-end space-x-1">
-                          <button 
-                            onClick={() => setEditingCar(car)}
-                            className="p-2.5 hover:bg-blue-50 text-blue-600 rounded-xl transition-colors border border-transparent hover:border-blue-100"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button 
-                            onClick={() => setDeletingId(car.id)}
-                            className="p-2.5 hover:bg-red-50 text-red-600 rounded-xl transition-colors border border-transparent hover:border-red-100"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      )}
-                    </td>
+          
+          {loading ? (
+            <div className="py-24 flex flex-col items-center justify-center text-gray-400">
+              <Loader2 className="animate-spin mb-4" size={40} />
+              <p className="font-black uppercase text-xs tracking-widest">Connecting to cloud...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
+                    <th className="px-6 py-5">Vehicle Details</th>
+                    <th className="px-6 py-5">Visibility</th>
+                    <th className="px-6 py-5">Valuation</th>
+                    <th className="px-6 py-5">MFG Year</th>
+                    <th className="px-6 py-5 text-right">Actions</th>
                   </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-20 text-center">
-                      <div className="flex flex-col items-center">
-                        <div className="bg-gray-100 p-4 rounded-full mb-4">
-                          <Search size={32} className="text-gray-300" />
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredCars.length > 0 ? filteredCars.map(car => (
+                    <tr key={car.id} className={`transition-all duration-300 ${deletingId === car.id ? 'bg-red-50' : 'hover:bg-gray-50/50'}`}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-4">
+                          <img src={car.images[0]} className="w-14 h-14 rounded-xl object-cover shadow-sm" />
+                          <div>
+                            <div className="font-black uppercase text-sm text-gray-900">{car.brand} {car.model}</div>
+                            <div className="text-xs text-gray-500 font-bold uppercase tracking-tighter">{car.fuelType} • {car.transmission}</div>
+                          </div>
                         </div>
-                        <p className="text-gray-400 font-black uppercase text-sm tracking-widest">No matching vehicles found</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {deletingId === car.id ? (
+                          <div className="flex items-center text-red-600 font-black text-[10px] uppercase tracking-widest">
+                            <AlertTriangle size={14} className="mr-2" />
+                            Removing from stock...
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {car.featured && <span className="bg-red-50 text-red-600 text-[9px] font-black px-2 py-0.5 rounded uppercase border border-red-100">Featured</span>}
+                            {car.verified && <span className="bg-green-50 text-green-600 text-[9px] font-black px-2 py-0.5 rounded uppercase border border-green-100">Verified</span>}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 font-black text-gray-900">₹{car.price}L</td>
+                      <td className="px-6 py-4 text-gray-500 font-bold">{car.year}</td>
+                      <td className="px-6 py-4 text-right">
+                        {deletingId === car.id ? (
+                          <div className="flex justify-end space-x-2 animate-in slide-in-from-right-2 duration-200">
+                            <button 
+                              onClick={() => setDeletingId(null)}
+                              className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center hover:bg-gray-300 transition-colors"
+                            >
+                              <RotateCcw size={12} className="mr-1" />
+                              Cancel
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(car.id)}
+                              className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+                            >
+                              <Check size={12} className="mr-1" />
+                              Confirm
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex justify-end space-x-1">
+                            <button 
+                              onClick={() => setEditingCar(car)}
+                              className="p-2.5 hover:bg-blue-50 text-blue-600 rounded-xl transition-colors border border-transparent hover:border-blue-100"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button 
+                              onClick={() => setDeletingId(car.id)}
+                              className="p-2.5 hover:bg-red-50 text-red-600 rounded-xl transition-colors border border-transparent hover:border-red-100"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-20 text-center">
+                        <div className="flex flex-col items-center">
+                          <div className="bg-gray-100 p-4 rounded-full mb-4">
+                            <Search size={32} className="text-gray-300" />
+                          </div>
+                          <p className="text-gray-400 font-black uppercase text-sm tracking-widest">No matching vehicles found</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -226,11 +263,11 @@ const Admin: React.FC = () => {
               <CarForm 
                 initialData={editingCar || undefined}
                 onCancel={() => { setIsAdding(false); setEditingCar(null); }}
-                onSubmit={(data) => {
+                onSubmit={async (data) => {
                   if (editingCar) {
-                    updateCar(editingCar.id, data);
+                    await updateCar(editingCar.id, data);
                   } else {
-                    addCar(data);
+                    await addCar(data);
                   }
                   setIsAdding(false);
                   setEditingCar(null);
