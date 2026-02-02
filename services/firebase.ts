@@ -1,9 +1,8 @@
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// These variables should be set in your Netlify Environment Variables settings
-// If not set, the app will fall back to local storage automatically
+// These variables are pulled from Vercel's Environment Variables
 const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY,
   authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -13,16 +12,17 @@ const firebaseConfig = {
   appId: process.env.VITE_FIREBASE_APP_ID
 };
 
-// Check if we have at least the API Key to attempt initialization
+// Check if we have the configuration
 const isFirebaseConfigured = !!process.env.VITE_FIREBASE_API_KEY;
 
 let db: any = null;
 
 if (isFirebaseConfigured) {
   try {
-    const app = initializeApp(firebaseConfig);
+    // Prevent double initialization
+    const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     db = getFirestore(app);
-    console.log("Firebase Cloud Storage Initialized");
+    console.log("Firebase Cloud Storage Active (Vercel Build)");
   } catch (error) {
     console.error("Firebase Initialization Error:", error);
   }

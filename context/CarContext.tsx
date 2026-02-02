@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Car } from '../types';
 import { MOCK_CARS } from '../constants';
@@ -10,7 +9,6 @@ import {
   updateDoc, 
   deleteDoc, 
   doc, 
-  setDoc,
   query,
   orderBy
 } from 'firebase/firestore';
@@ -31,32 +29,32 @@ export const CarProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [loading, setLoading] = useState(true);
   const [isCloudSync, setIsCloudSync] = useState(false);
 
-  // Initialize Data
   useEffect(() => {
+    // If Firebase is configured, set up a real-time listener
     if (isFirebaseConfigured && db) {
       setIsCloudSync(true);
       const q = query(collection(db, "inventory"), orderBy("year", "desc"));
       
-      // Real-time listener: this reflects changes on other devices instantly
+      // onSnapshot is the key for real-time cross-device updates
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const carsData: Car[] = [];
         querySnapshot.forEach((doc) => {
           carsData.push({ id: doc.id, ...doc.data() } as Car);
         });
         
-        // If cloud is empty, seed it with mock data (first time only)
-        if (carsData.length === 0) {
-          console.log("Seeding cloud database with initial inventory...");
-          MOCK_CARS.forEach(car => {
+        // Seed database if it's completely empty (one-time setup)
+        if (carsData.length === 0 && loading) {
+          console.log("Database empty. Seeding with initial data...");
+          MOCK_CARS.forEach(async (car) => {
             const { id, ...data } = car;
-            addDoc(collection(db!, "inventory"), data);
+            await addDoc(collection(db, "inventory"), data);
           });
         } else {
           setCars(carsData);
         }
         setLoading(false);
       }, (error) => {
-        console.error("Firestore sync error:", error);
+        console.error("Firestore real-time sync error:", error);
         setIsCloudSync(false);
         loadLocalFallback();
       });
@@ -68,7 +66,6 @@ export const CarProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const loadLocalFallback = () => {
-    console.log("Using local storage fallback for inventory.");
     const saved = localStorage.getItem('carz34_inventory');
     if (saved) {
       setCars(JSON.parse(saved));
@@ -78,7 +75,7 @@ export const CarProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLoading(false);
   };
 
-  // Persist local fallback if not in cloud mode
+  // Sync to local storage for offline use if cloud is not available
   useEffect(() => {
     if (!isCloudSync && !loading) {
       localStorage.setItem('carz34_inventory', JSON.stringify(cars));
