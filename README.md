@@ -7,7 +7,7 @@ Carz-34 is a premium business website for Chandrapur's leading second-hand autom
 *   **Business Name:** Carz-34
 *   **Tagline:** Trusted Pre-Owned Cars in Chandrapur. Quality assured, price guaranteed.
 *   **Location:** Civil Lines, Near District Court, Chandrapur, Maharashtra 442401
-*   **Contact:** +91 97653 05539 | info@carz34.in
+*   **Contact:** +91 97653 05539 
 *   **Mission:** To redefine the pre-owned car buying experience through transparency, trust, and quality assurance.
 
 ### Key Features
@@ -67,30 +67,6 @@ graph TD
 *   It matches user intent (budget, body type, brand) against the current inventory data.
 *   Provides a curated list of recommendations, making the search process conversational and intuitive.
 
-## 🚀 How to Push to GitHub
-
-To host this project on your own GitHub repository, follow these steps:
-
-1.  **Create a new repository** on GitHub (e.g., `carz-34-web`).
-2.  **Initialize and push** from your local terminal:
-
-```bash
-# Initialize git
-git init
-
-# Add all files
-git add .
-
-# Commit changes
-git commit -m "Initial commit: Carz-34 Website"
-
-# Link to your GitHub repo (Replace with your actual URL)
-git remote add origin https://github.com/YOUR_USERNAME/carz-34-web.git
-
-# Push to main branch
-git branch -M main
-git push -u origin main
-```
 
 ---
 
